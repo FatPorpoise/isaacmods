@@ -1,0 +1,6 @@
+# Cloned reference repos — managed externally, not part of workspace source
+/isaac-lua-api/
+/isaac-docs/
+
+# Session memory (remember skill)
+/.remember/

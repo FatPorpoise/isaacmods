@@ -1,0 +1,4 @@
+- Fixed Greed Mode can enter treasure room without keys
+- Supported ModConfigMenu for tweak settings
+- Add TAB + ASWD for quick move into neighbor room
+- May bookmark interested room by pressing TAB + 1~9, press again to teleport into that room, TAB + 0 to clear bookmarks
