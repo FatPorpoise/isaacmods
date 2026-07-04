@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# Launch Isaac's native Linux ModUploader (Steam Workshop publishing tool).
+#
+# The shipped launcher (tools/ModUploader/Linux/moduploader) has CRLF line
+# endings, so its `#!/bin/sh` shebang resolves to `/bin/sh\r` and fails with
+# "bad interpreter". We bypass it and run ModUploader.bin directly with the
+# bundled lib64/ on the loader path — exactly what the launcher meant to do.
+set -euo pipefail
+
+ISAAC_ROOT="${ISAAC_ROOT:-$HOME/.local/share/Steam/steamapps/common/The Binding of Isaac Rebirth}"
+MU_DIR="$ISAAC_ROOT/tools/ModUploader/Linux"
+
+if [[ ! -x "$MU_DIR/ModUploader.bin" ]]; then
+	echo "ModUploader.bin not found at: $MU_DIR" >&2
+	echo "Set ISAAC_ROOT to your Isaac install dir." >&2
+	exit 1
+fi
+
+if ! pgrep -x steam >/dev/null; then
+	echo "warning: Steam is not running — Workshop upload will fail." >&2
+fi
+
+# Run from the caller's cwd so ModUploader's file dialogs default there.
+# Use absolute paths for the binary and lib64/ so the bundled
+# libsteam_api.so and steam_appid.txt stay resolvable without cd-ing.
+export LD_LIBRARY_PATH="$MU_DIR/lib64:${LD_LIBRARY_PATH:-}"
+exec "$MU_DIR/ModUploader.bin" "$@"
