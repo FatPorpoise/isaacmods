@@ -64,6 +64,7 @@ local icon_flag2 = {"IconLockedRoom", "IconTreasureRoomGreed", "IconBossAmbushRo
 local scpos = Vector(0, 0)
 local grid_room = {}
 local grid_room_mark = {}
+local room_neighbours = {} --used instead of minimapi's GetAdjacentRooms() method
 local draw_room_id = {}
 local draw_room_pos = {}
 local draw_room_shape = {}
@@ -342,6 +343,20 @@ if ModConfigMenu then
     end)
 end
 ---functions---
+--debug function for recursive print
+function _gt.dump(o)
+   if type(o) == 'table' then
+      local s = '{ '
+      for k,v in pairs(o) do
+         if type(k) ~= 'number' then k = '"'..k..'"' end
+         s = s .. '['..k..'] = ' .. _gt.dump(v) .. ','
+      end
+      return s .. '} '
+   else
+      return tostring(o)
+   end
+end
+
 function _gt:check_pos_en_box(pos,ltpos,rbpos)
   if pos.X > ltpos.X and pos.X < rbpos.X and pos.Y > ltpos.Y and pos.Y < rbpos.Y then
     return true
@@ -547,7 +562,14 @@ function _gt:teleport_to_grid_index(gid) ----core
     end
 
     local dist = 0
-    if gtconfig.FairTripTime and gtconfig.MinimapAPICompat and MinimapAPI then
+    if gtconfig.FairTripTime then
+      if not gtconfig.MinimapAPICompat then
+        dist = _gt:fair_trip_apiless(crd.SafeGridIndex, gid)
+        if dist == 999 then
+          _gt:tele_failed()
+          return
+        end
+      elseif MinimapAPI then
         local curRoom = MinimapAPI:GetCurrentRoom()
         if curRoom then
           dist = _gt:fair_trip(curRoom.Descriptor.SafeGridIndex, gid)
@@ -556,6 +578,7 @@ function _gt:teleport_to_grid_index(gid) ----core
             return
           end
         end
+      end
     end
 
     if crd.Data.Type == 7 and secret_pre_room_id[crid] then -- from secret room (skip if antechamber never recorded)
@@ -693,6 +716,13 @@ function _gt:get_grid_room()
     for i = 0, all_room.Size do
       local des = all_room:Get(i)
       if des then
+        if not gtconfig.MinimapAPICompat then
+          room_neighbours[des.SafeGridIndex] = {
+            --may be redundant to keep descriptor here and in grid_room, maybe it could be merged
+          Descriptor = des,
+          Neighbors = {}
+        }
+        end
         local gid = des.GridIndex
         if gtconfig.DangerCautionCompat and DangerCaution then
             local danger = DangerCaution:roomDangerFlags(des)
@@ -709,6 +739,43 @@ function _gt:get_grid_room()
             end
           end
         end
+      end
+    end
+    --discover neighbours, only if Apiless option is used
+    --maybe use neighlut for more efficient way later
+    --if this hurts the performance, get_grid_room calls should be reavaluated to be used only when necessary
+    --currently get_grid_room is used in _gt:step which is called on MC_POST_RENDER (Called after every game render (60 times per second)).
+    if not gtconfig.MinimapAPICompat then
+      local offsets = {
+        -13,
+        13,
+        -1,
+        1
+      }
+      for _, room in pairs(room_neighbours) do
+        local safeIndex = room.Descriptor.SafeGridIndex
+
+        for gridIndex, cellRoom in pairs(grid_room) do
+          if cellRoom.SafeGridIndex == safeIndex then
+              for _, offset in ipairs(offsets) do
+                  local other = grid_room[gridIndex + offset]
+
+                  if other and other.SafeGridIndex ~= safeIndex then
+                      room.Neighbors[other.SafeGridIndex] = true
+                  end
+              end
+          end
+        end
+      end
+        -- Convert neighbour sets to arrays
+      for _, room in pairs(room_neighbours) do
+        local list = {}
+
+        for id in pairs(room.Neighbors) do
+          list[#list + 1] = id
+        end
+
+        room.Neighbors = list
       end
     end
 end
@@ -1530,6 +1597,8 @@ end
 --
 function _gt:new_level()
     hudoffset = Options.HUDOffset * 10 --refresh in case the HUD-offset slider changed mid-run
+    -- if you want to let the user disable api completly despite having it use this
+    -- if gtconfig.MinimapAPICompat and MinimapAPI then
     if MinimapAPI then
         -- print('GoodTrip [Fixed] detected MinimapAPI')
         pcall(function ()
@@ -1592,6 +1661,49 @@ function _gt:fair_trip(roomIndex, target)
 				if not visited[sid] then
 					visited[sid] = true
 					queue[#queue+1] = {room = adj, dist = cur.dist + 1}
+				end
+			end
+		end
+	end
+	return 999
+end
+
+--use grid_room's room descriptors instead of Api's room class and room_neighbours instead of GetAdjacentRooms method from that class
+function _gt:fair_trip_apiless(roomIndex, target)
+	--BFS shortest distance; only cleared rooms can be passed through,
+	--but any room connected to the target counts as the last hop (+1)
+
+	local startRoom = grid_room[roomIndex]
+	local targetRoom = grid_room[target]
+	if not startRoom or not targetRoom then
+		return 0
+	end
+	local safeTarget = targetRoom.SafeGridIndex
+	local visited = {[startRoom.SafeGridIndex] = true}
+	local queue = {{room = startRoom, dist = 0}}
+	local head = 1
+	while queue[head] do
+		local cur = queue[head]
+		head = head + 1
+		local safeIndex = cur.room.SafeGridIndex
+		if safeIndex == safeTarget and cur.room.Clear then
+			return cur.dist
+		end
+		if _gt:check_neigh_connected(targetRoom, function(rd)
+			return rd.SafeGridIndex == safeIndex
+		end) then
+			return cur.dist + 1
+		end
+		if cur.room.Clear then
+      print(cur.room.SafeGridIndex)
+      print(cur.room.SafeGridIndex)
+      print(_gt.dump(room_neighbours))
+			for _, adj in ipairs(room_neighbours[cur.room.SafeGridIndex].Neighbors) do
+        local adj_dsc = grid_room[adj]
+				local sid = adj_dsc.SafeGridIndex
+				if not visited[sid] then
+					visited[sid] = true
+					queue[#queue+1] = {room = adj_dsc, dist = cur.dist + 1}
 				end
 			end
 		end
