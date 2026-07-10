@@ -8,7 +8,7 @@ Now they automatically aligns when shooting tears! Along shooting direction!
 [*] By default, when Jacob &amp; Esau comes closer than 150 pixels, and being shooting, they will aligns (by attracting each other). Won't align when not shooting.
 [*] Keep shooting at one direction for 1.8s (like Epiphora) will make Jacob &amp; Esau rotate to align along the shooting direction, Jacob in the front (press H key to swap Esau to front). Won't align if player is moving.
 [*] Original game supports holding Ctrl (drop button) to move Jacob only (keep Esau standing still), this mod additionally support holding Alt to move Esau only (keep Jacob standing still).
-[*] To change these default settings, behaviors, and key bindings use [url=https://steamcommunity.com/sharedfiles/filedetails/?id=2681875787]Mod Config Menu[/url].
+[*] To change these default settings, behaviors, and key bindings use [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3701683951]Mod Config Menu[/url].
 [*] See also my another funny J&amp;E mod [url=https://steamcommunity.com/sharedfiles/filedetails/?id=2925304303]Jacob Esau Individual Death[/url]!</description>
     <version>1.9</version>
     <visibility>Public</visibility>

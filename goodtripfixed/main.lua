@@ -132,7 +132,31 @@ local gtconfig = {
     -- DebugMod = false,  --testonly.
     ControllerAlternateZ = nil,  --replacement for Z in the TAB+Z last room shortcut
     ControllerAlternateR = nil,  --replacement for R in the TAB+R restart shortcut
+    MinimapScale = 10,  --keyboard minimap size, 5 = 0.5x .. 10 = 1.0x .. 25 = 2.5x
 }
+----
+local mmsc = 1.0 --keyboard minimap scale factor (gtconfig.MinimapScale / 10)
+local function update_mmscale()
+    mmsc = (gtconfig.MinimapScale or 10) / 10
+    mmp.Scale = Vector(mmsc, mmsc)
+    mic.Scale = Vector(mmsc, mmsc)
+    gtui.Scale = Vector(mmsc, mmsc)
+    select.Scale = Vector(mmsc, mmsc)
+    cursor.Scale = Vector(mmsc, mmsc)
+end
+update_mmscale()
+local function cycle_mmscale() --zoom button: x1.0 -> x1.5 -> x2.0 -> x1.0
+    local cur = gtconfig.MinimapScale or 10
+    if cur < 15 then
+        gtconfig.MinimapScale = 15
+    elseif cur < 20 then
+        gtconfig.MinimapScale = 20
+    else
+        gtconfig.MinimapScale = 10
+    end
+    update_mmscale()
+    prep_alarm = true
+end
 ----
 local hudoffset = Options.HUDOffset * 10  --need your real hudoffset of game [0,10]
 local minimapoffx = 0
@@ -223,6 +247,27 @@ if ModConfigMenu then
     ModConfigMenu.AddSetting(
       "GoodTrip [Fixed]", nil,
       {
+        Type = ModConfigMenu.OptionType.NUMBER,
+        Minimum = 5,
+        Maximum = 25,
+        Default = 10,
+        CurrentSetting = function()
+          return gtconfig.MinimapScale
+        end,
+        Display = function()
+          return ("MinimapScale: x%.1f"):format((gtconfig.MinimapScale or 10) / 10)
+        end,
+        OnChange = function(b)
+          gtconfig.MinimapScale = b
+          update_mmscale()
+          prep_alarm = true
+        end,
+        Info = { "Keyboard minimap size, x0.5 (tiny) to x1.0 (original) up to x2.5" },
+      }
+    )
+    ModConfigMenu.AddSetting(
+      "GoodTrip [Fixed]", nil,
+      {
         Type = ModConfigMenu.OptionType.KEYBIND_CONTROLLER,
         CurrentSetting = function()
           return gtconfig.ControllerAlternateZ
@@ -280,6 +325,7 @@ if ModConfigMenu then
                 gtconfig[k] = v
             end
             mmp_ltpos = Vector(gtconfig.TopLeftX or 100, gtconfig.TopLeftY or 100)
+            update_mmscale()
             -- mmp_pos0 = mmp_ltpos - mmp_ltpos_
             -- mmp_rbpos = mmp_pos0 + mmp_rbpos_
         end
@@ -577,7 +623,7 @@ function _gt:teleport_to_grid_index(gid) ----core
             gy = (mmp_1step_mgid - gx)/ 13
             mmp_1step_mgid = -2
         end
-      mmp_ctrl_pos = mmp_pos0 + Vector(gx * 8 + 6, gy * 7 + 5)
+      mmp_ctrl_pos = mmp_pos0 + Vector(gx * 8 + 6, gy * 7 + 5) * mmsc
       return
     end
     local tele_anime
@@ -626,8 +672,8 @@ end
 --
 function _gt:get_pos_grid_index_mmp(pos)
     -----minimap-----
-    if _gt:check_pos_en_box(pos,mmp_ltpos + Vector(1, 1), mmp_rbpos + Vector(11, 10)) then
-      local mgid = math.floor((pos.X - mmp_pos0.X - 2)/ 8) + math.floor((pos.Y - mmp_pos0.Y - 2)/ 7) * 13
+    if _gt:check_pos_en_box(pos,mmp_ltpos + Vector(1, 1) * mmsc, mmp_rbpos + Vector(11, 10) * mmsc) then
+      local mgid = math.floor((pos.X - mmp_pos0.X - 2 * mmsc)/ (8 * mmsc)) + math.floor((pos.Y - mmp_pos0.Y - 2 * mmsc)/ (7 * mmsc)) * 13
       return mgid
     else
       return -99
@@ -774,8 +820,8 @@ function _gt:prep_minimap()
     ----
     ltroom = _gt:get_corner_room(1)
     rbroom = _gt:get_corner_room(4)
-    mmp_ltpos_ = Vector(ltroom.X * 8, ltroom.Y * 7) -- + Vector(-4, -4)
-    mmp_rbpos_ = Vector(rbroom.X * 8, rbroom.Y * 7) -- + Vector(4, 4)
+    mmp_ltpos_ = Vector(ltroom.X * 8, ltroom.Y * 7) * mmsc -- + Vector(-4, -4)
+    mmp_rbpos_ = Vector(rbroom.X * 8, rbroom.Y * 7) * mmsc -- + Vector(4, 4)
     mmp_pos0 = mmp_ltpos - mmp_ltpos_
     mmp_rbpos = mmp_pos0 + mmp_rbpos_
     ---ctrl pos prep---
@@ -785,7 +831,7 @@ function _gt:prep_minimap()
         local gx = crsid % 13
         local gy = (crsid - gx)/ 13
         -- print('writemgpos')
-        mmp_ctrl_pos = mmp_pos0 + Vector(gx * 8 + 6, gy * 7 + 5)
+        mmp_ctrl_pos = mmp_pos0 + Vector(gx * 8 + 6, gy * 7 + 5) * mmsc
       end
     end
     ---draw prep---
@@ -804,20 +850,20 @@ function _gt:prep_minimap()
               then
                 table.insert(draw_room_id, i * 13 + j)
                 table.insert(draw_room_shape, 1)
-                table.insert(draw_room_pos, Vector(mmp_pos0.X + 8 * j, mmp_pos0.Y + 7 * i))
+                table.insert(draw_room_pos, Vector(mmp_pos0.X + 8 * j * mmsc, mmp_pos0.Y + 7 * i * mmsc))
               end
               --else draw nothing
             elseif drd.Data.Shape == RoomShape.ROOMSHAPE_LTL then
               --LTLonly
               table.insert(draw_room_id, i * 13 + j)
               table.insert(draw_room_shape, drd.Data.Shape)
-              table.insert(draw_room_pos, Vector(mmp_pos0.X + 8 * (j - 1), mmp_pos0.Y + 7 * i))
+              table.insert(draw_room_pos, Vector(mmp_pos0.X + 8 * (j - 1) * mmsc, mmp_pos0.Y + 7 * i * mmsc))
               --
             else
               --normal
               table.insert(draw_room_id, i * 13 + j)
               table.insert(draw_room_shape, drd.Data.Shape)
-              table.insert(draw_room_pos, Vector(mmp_pos0.X + 8 * j, mmp_pos0.Y + 7 * i))
+              table.insert(draw_room_pos, Vector(mmp_pos0.X + 8 * j * mmsc, mmp_pos0.Y + 7 * i * mmsc))
               --
             end
           end
@@ -828,7 +874,7 @@ function _gt:prep_minimap()
     if room:IsMirrorWorld() then
       for i = 1, #draw_room_pos do
         local p = draw_room_pos[i]
-        p.X = mmp_pos0.X + 8 * ltroom.X + (mmp_pos0.X + 8 * rbroom.X - p.X)
+        p.X = mmp_pos0.X + 8 * ltroom.X * mmsc + (mmp_pos0.X + 8 * rbroom.X * mmsc - p.X)
         local s = draw_room_shape[i]
         local need = true
         if s == RoomShape.ROOMSHAPE_LTL then
@@ -845,7 +891,7 @@ function _gt:prep_minimap()
           need = false
         end
         if need then
-          p.X = p.X - 8
+          p.X = p.X - 8 * mmsc
           draw_room_shape[i] = s
         end
         draw_room_pos[i] = p
@@ -872,21 +918,21 @@ function _gt:draw_minimap_ui()
     ---
     for i = ltroom.X, rbroom.X do
       gtui:SetFrame("ui2", ui_timer)
-      gtui:Render(mmp_pos0 + Vector(i * 8, ltroom.Y * 7), Vector(0, 0), Vector(0, 0))
+      gtui:Render(mmp_pos0 + Vector(i * 8, ltroom.Y * 7) * mmsc, Vector(0, 0), Vector(0, 0))
       gtui:SetFrame("ui8", ui_timer)
-      gtui:Render(mmp_pos0 + Vector(i * 8, rbroom.Y * 7), Vector(0, 0), Vector(0, 0))
+      gtui:Render(mmp_pos0 + Vector(i * 8, rbroom.Y * 7) * mmsc, Vector(0, 0), Vector(0, 0))
     end
     for j = ltroom.Y, rbroom.Y do
       gtui:SetFrame("ui4", ui_timer)
-      gtui:Render(mmp_pos0 + Vector(ltroom.X * 8, j * 7), Vector(0, 0), Vector(0, 0))
+      gtui:Render(mmp_pos0 + Vector(ltroom.X * 8, j * 7) * mmsc, Vector(0, 0), Vector(0, 0))
       gtui:SetFrame("ui6", ui_timer)
-      gtui:Render(mmp_pos0 + Vector(rbroom.X * 8, j * 7), Vector(0, 0), Vector(0, 0))
+      gtui:Render(mmp_pos0 + Vector(rbroom.X * 8, j * 7) * mmsc, Vector(0, 0), Vector(0, 0))
     end
     ---
     gtui:SetFrame("ui5", ui_timer)
     for i = ltroom.X, rbroom.X do
       for j = ltroom.Y, rbroom.Y do
-        gtui:Render(mmp_pos0 + Vector(i * 8, j * 7), Vector(0, 0), Vector(0, 0))
+        gtui:Render(mmp_pos0 + Vector(i * 8, j * 7) * mmsc, Vector(0, 0), Vector(0, 0))
       end
     end
     --pin--
@@ -896,6 +942,9 @@ function _gt:draw_minimap_ui()
       gtui:SetFrame("pin0", ui_timer)
     end
     gtui:Render(mmp_ltpos, Vector(0, 0), Vector(0, 0))
+    --zoom button--
+    gtui:SetFrame("zoom", ui_timer)
+    gtui:Render(mmp_ltpos + Vector(12, 0) * mmsc, Vector(0, 0), Vector(0, 0))
 end
 --
 function _gt:draw_minimap()
@@ -904,7 +953,7 @@ function _gt:draw_minimap()
     for i = 1, #draw_room_id do
       local s = grid_room[draw_room_id[i]].Data.Shape
       if (not room:IsMirrorWorld() and s == RoomShape.ROOMSHAPE_LTL) or (room:IsMirrorWorld() and s >= RoomShape.ROOMSHAPE_2x1 and s ~= RoomShape.ROOMSHAPE_LTL) then
-        mmp:Render(draw_room_pos[i] + Vector(8, 0), Vector(0, 0), Vector(0, 0))
+        mmp:Render(draw_room_pos[i] + Vector(8 * mmsc, 0), Vector(0, 0), Vector(0, 0))
       else
         mmp:Render(draw_room_pos[i], Vector(0, 0), Vector(0, 0))
       end
@@ -958,7 +1007,7 @@ function _gt:draw_minimap()
           else
             mic:SetFrame(icon_flag[rd.Data.Type], 0)
           end
-          mic:Render(draw_room_pos[i] + draw_icon_pos[draw_room_shape[i]], Vector(0, 0), Vector(0, 0))
+          mic:Render(draw_room_pos[i] + draw_icon_pos[draw_room_shape[i]] * mmsc, Vector(0, 0), Vector(0, 0))
         elseif gtconfig.ShowSpecialIcons and rd.Data.Type == 1 then
           local iid = 0
           local spawns = rd.Data.Spawns
@@ -994,7 +1043,7 @@ function _gt:draw_minimap()
           end
           if iid ~= 0 then
             mic:SetFrame(icon_flag2[iid], 0)
-            mic:Render(draw_room_pos[i] + draw_icon_pos[draw_room_shape[i]], Vector(0, 0), Vector(0, 0))
+            mic:Render(draw_room_pos[i] + draw_icon_pos[draw_room_shape[i]] * mmsc, Vector(0, 0), Vector(0, 0))
           end
         end
       end
@@ -1027,13 +1076,13 @@ function _gt:draw_minimap()
 end
 ---control & run---
 function _gt:mmp_ctrl_move()
-  local dif = {mmp_ctrl_pos.Y - mmp_ltpos.Y + 2, mmp_ctrl_pos.X - mmp_ltpos.X + 2, mmp_rbpos.X - mmp_ctrl_pos.X + 14, mmp_rbpos.Y - mmp_ctrl_pos.Y + 13}
+  local dif = {mmp_ctrl_pos.Y - mmp_ltpos.Y + 2 * mmsc, mmp_ctrl_pos.X - mmp_ltpos.X + 2 * mmsc, mmp_rbpos.X - mmp_ctrl_pos.X + 14 * mmsc, mmp_rbpos.Y - mmp_ctrl_pos.Y + 13 * mmsc}
     if room:IsMirrorWorld() then dif[2], dif[3] = dif[3], dif[2] end --X movement is mirrored, so left/right bound guards swap too
     for i = 1,4 do
       if gtconfig.QuicklyOneRoomMove then
         if Input.IsActionTriggered(movkey[i], player.ControllerIndex) and dif[i] > 0 then
           -- local s = room:GetRoomShape()
-          mmp_ctrl_pos = mmp_ctrl_pos + _gt:mirror_mmp_dir(dir[i] * Vector(8, 7))
+          mmp_ctrl_pos = mmp_ctrl_pos + _gt:mirror_mmp_dir(dir[i] * Vector(8, 7) * mmsc)
           local nmgid = _gt:get_pos_grid_index_mmp(mmp_ctrl_pos)
           if _gt:check_teleble(nmgid) and tele_cd < 1 then
             mmp_1step_tp = true
@@ -1043,11 +1092,11 @@ function _gt:mmp_ctrl_move()
       end
       if gtconfig.FasterCursorMove then
         if Input.IsActionTriggered(key[i], player.ControllerIndex) and dif[i] > 0 then
-          mmp_ctrl_pos = mmp_ctrl_pos + _gt:mirror_mmp_dir(dir[i]) * Vector(8, 7)
+          mmp_ctrl_pos = mmp_ctrl_pos + _gt:mirror_mmp_dir(dir[i]) * Vector(8, 7) * mmsc
         end
       else
         if Input.IsActionPressed(key[i], player.ControllerIndex) and dif[i] > 0 then
-          mmp_ctrl_pos = mmp_ctrl_pos + _gt:mirror_mmp_dir(dir[i])
+          mmp_ctrl_pos = mmp_ctrl_pos + _gt:mirror_mmp_dir(dir[i]) * mmsc
         end
       end
     end
@@ -1089,7 +1138,7 @@ function _gt:tab_action()
             or Input.IsActionPressed(key[2],player.ControllerIndex)
             or Input.IsActionPressed(key[3],player.ControllerIndex)
             or Input.IsActionPressed(key[4],player.ControllerIndex)
-        local in_ui = _gt:check_pos_en_box(mpos,mmp_ltpos + Vector(-8, -18),mmp_rbpos + Vector(20, 20)) --ui zone
+        local in_ui = _gt:check_pos_en_box(mpos,mmp_ltpos + Vector(-8, -18) * mmsc,mmp_rbpos + Vector(20, 20) * mmsc) --ui zone
         if arrowdown then --keyboard used: it becomes the active device
           kb_active = true
         elseif mouse_moved and in_ui then --mouse physically moved over the minimap: it takes over
@@ -1105,7 +1154,7 @@ function _gt:tab_action()
               gy = (mmp_1step_mgid - gx)/ 13
               mmp_1step_mgid = -2
             end
-            mmp_ctrl_pos = mmp_pos0 + Vector(gx * 8 + 6, gy * 7 + 5)
+            mmp_ctrl_pos = mmp_pos0 + Vector(gx * 8 + 6, gy * 7 + 5) * mmsc
           else
             _gt:mmp_ctrl_move()
             _gt:player_shoot_cooldown()
@@ -1116,7 +1165,7 @@ function _gt:tab_action()
         _gt:draw_minimap_ui()
       else
         mmp_ctrl = false
-        if mmp_pin == 1 or _gt:check_pos_en_box(mpos,mmp_ltpos + Vector(-8, -18),mmp_rbpos + Vector(20, 20)) then --ui zone
+        if mmp_pin == 1 or _gt:check_pos_en_box(mpos,mmp_ltpos + Vector(-8, -18) * mmsc,mmp_rbpos + Vector(20, 20) * mmsc) then --ui zone
           _gt:draw_minimap_ui()
         else
           ui_timer = 0
@@ -1133,7 +1182,7 @@ function _gt:mirror_mmp_pos(p)
     if room:IsMirrorWorld() then
       -- local ltroom = _gt:get_corner_room(1)
       -- local rbroom = _gt:get_corner_room(4)
-      return Vector(mmp_pos0.X + 8 * ltroom.X + (mmp_pos0.X + 8 * rbroom.X - p.X) + 12, p.Y)
+      return Vector(mmp_pos0.X + 8 * ltroom.X * mmsc + (mmp_pos0.X + 8 * rbroom.X * mmsc - p.X) + 12 * mmsc, p.Y)
     else
       return p
     end
@@ -1165,13 +1214,15 @@ function _gt:mouse_action()
         --
         if (_gt:check_teleble(mgid) and tele_cd < 1) then
           _gt:teleport_to_grid_index(mgid)
-        elseif _gt:check_pos_en_box(mpos,mmp_ltpos + Vector(-6, -15),Vector(mmp_rbpos.X + 18, mmp_ltpos.Y - 1)) then --magnet zone
-          if _gt:check_pos_en_box(mpos,mmp_ltpos + Vector(-3, -13),mmp_ltpos + Vector(5,-4)) then --pin zone
+        elseif _gt:check_pos_en_box(mpos,mmp_ltpos + Vector(-6, -15) * mmsc,Vector(mmp_rbpos.X + 18 * mmsc, mmp_ltpos.Y - 1 * mmsc)) then --magnet zone
+          if _gt:check_pos_en_box(mpos,mmp_ltpos + Vector(-3, -13) * mmsc,mmp_ltpos + Vector(5,-4) * mmsc) then --pin zone
             if mmp_pin == 1 then
               mmp_pin = 0
             else
               mmp_pin = 1
             end
+          elseif _gt:check_pos_en_box(mpos,mmp_ltpos + Vector(8, -13) * mmsc,mmp_ltpos + Vector(19, -3) * mmsc) then --zoom button
+            cycle_mmscale()
           elseif mmp_pin == 0 then
             mouse_magnet = true
             d_pos = mmp_ltpos - mpos
@@ -1220,19 +1271,19 @@ function _gt:mouse_action()
         mmp_pos0 = mmp_ltpos - mmp_ltpos_
         mmp_rbpos = mmp_pos0 + mmp_rbpos_
         _gt:prep_minimap()
-      elseif mmp_rbpos.X > scpos.X - 17 then
-        mmp_rbpos.X = scpos.X - 17
+      elseif mmp_rbpos.X > scpos.X - 17 * mmsc then
+        mmp_rbpos.X = scpos.X - 17 * mmsc
         mmp_pos0 = mmp_rbpos - mmp_rbpos_
         mmp_ltpos = mmp_pos0 + mmp_ltpos_
         _gt:prep_minimap()
       end
-      if mmp_ltpos.Y < 14 then
-        mmp_ltpos.Y = 14
+      if mmp_ltpos.Y < 14 * mmsc then
+        mmp_ltpos.Y = 14 * mmsc
         mmp_pos0 = mmp_ltpos - mmp_ltpos_
         mmp_rbpos = mmp_pos0 + mmp_rbpos_
         _gt:prep_minimap()
-      elseif mmp_rbpos.Y > scpos.Y - 16 then
-        mmp_rbpos.Y = scpos.Y - 16
+      elseif mmp_rbpos.Y > scpos.Y - 16 * mmsc then
+        mmp_rbpos.Y = scpos.Y - 16 * mmsc
         mmp_pos0 = mmp_rbpos - mmp_rbpos_
         mmp_ltpos = mmp_pos0 + mmp_ltpos_
         _gt:prep_minimap()
@@ -1337,8 +1388,10 @@ function _gt:step()
         if mouse_in_ui then
           ---click
           if _gt:IsMouseBtnTriggered(0) then
-            if _gt:check_pos_en_box(mpos,mmp_ltpos + Vector(-3, -13),mmp_ltpos + Vector(5,-4)) then --pin zone
+            if _gt:check_pos_en_box(mpos,mmp_ltpos + Vector(-3, -13) * mmsc,mmp_ltpos + Vector(5,-4) * mmsc) then --pin zone
             mmp_pin = 0
+            elseif _gt:check_pos_en_box(mpos,mmp_ltpos + Vector(8, -13) * mmsc,mmp_ltpos + Vector(19, -3) * mmsc) then --zoom button
+              cycle_mmscale()
             else
               local mgid = _gt:get_pos_grid_index_mmp(_gt:mirror_mmp_pos(mpos))
               if (_gt:check_teleble(mgid) and tele_cd < 1) then
@@ -1405,7 +1458,7 @@ end
 function _gt:step2()
     if mmp_pin == 1 and gtconfig.KeyboardMapEnable then
       mpos = Isaac.WorldToScreen(Input.GetMousePosition(true))
-      if _gt:check_pos_en_box(mpos,mmp_ltpos + Vector(-8, -18),mmp_rbpos + Vector(20, 20)) then --ui zone
+      if _gt:check_pos_en_box(mpos,mmp_ltpos + Vector(-8, -18) * mmsc,mmp_rbpos + Vector(20, 20) * mmsc) then --ui zone
         mouse_in_ui = true
       else
         mouse_in_ui = false
