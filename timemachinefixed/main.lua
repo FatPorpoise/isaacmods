@@ -171,7 +171,7 @@ if ModConfigMenu then
     end
     for i, name in ipairs(machine_names) do
         ModConfigMenu.AddSetting(
-          "TimeMachine [Fixed]", "Machines",
+          "TimeMachine [Fixed]", nil,
           {
             Type = ModConfigMenu.OptionType.BOOLEAN,
             CurrentSetting = function()
