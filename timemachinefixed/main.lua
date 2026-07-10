@@ -228,15 +228,10 @@ function tmmc:step()
                 local player = Isaac.GetPlayer(i)
                 for _, slot in ipairs(machines) do
                     if player.Position:Distance(slot.Position) < (player.Size + slot.Size) then
-                        --invincibility from an effect (The Chariot / Power Pill / Unicorn) has no
-                        --damage cooldown, unlike post-hit i-frames
-                        local effect_invinc = player:GetDamageCooldown() <= 0 and player:HasInvincibility()
                         --keep health-taking machines at vanilla speed when the next hit could
-                        --kill (player needs real time to walk away), and during effect
-                        --invincibility (never burn the buff under their feet, and no
-                        --faster-than-vanilla free donations either)
+                        --kill, so the player has real time to walk away
                         local danger = health_machine[slot.Variant]
-                            and (tmmc:hp_halves(player) <= tmmc:machine_cost(slot.Variant) or effect_invinc)
+                            and tmmc:hp_halves(player) <= tmmc:machine_cost(slot.Variant)
                         if not danger then
                             isTouched = true
                             accelerated = true
@@ -251,16 +246,17 @@ function tmmc:step()
                             end
                             for _ = 1, count do
                                 slot:Update()
-                                if not effect_invinc then
-                                    local oldPosition = player.Position
+                                local oldPosition = player.Position
+                                player:Update()
+                                player.Position = oldPosition
+                                --invincibility (i-frames or a buff) also runs at the accelerated
+                                --rate, so invincible donation yields no more than vanilla; the
+                                --lethal-HP guard above is what prevents the sudden deaths
+                                if health_machine[slot.Variant] and player:HasInvincibility()
+                                    and tmmc:hp_halves(player) > tmmc:machine_cost(slot.Variant) then
+                                    oldPosition = player.Position
                                     player:Update()
                                     player.Position = oldPosition
-                                    if health_machine[slot.Variant] and player:GetDamageCooldown() > 0
-                                        and tmmc:hp_halves(player) > tmmc:machine_cost(slot.Variant) then
-                                        oldPosition = player.Position
-                                        player:Update()
-                                        player.Position = oldPosition
-                                    end
                                 end
                             end
                         end

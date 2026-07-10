@@ -24,14 +24,14 @@ As well as many feature improvements:
 - All settings now live in [url=https://steamcommunity.com/sharedfiles/filedetails/?id=2681875787]Mod Config Menu[/url] (just like [url=https://steamcommunity.com/sharedfiles/filedetails/?id=2916069863] GoodTrip[Fixed] [/url]): max speed, speed-up rate, and per-machine toggles.
 - Optionally kill the flies spawned by Shell Game / Hell Game / beggars, so speeding them up won't get you hurt (MCM: KillSpawnedFlies).
 - Optionally delay troll bombs dropped by machines / beggars until you are done (MCM: DefuseSpawnedBombs).
-- No more sudden deaths: acceleration stops when the next donation could kill you (a full heart from Womb onwards is accounted for), revive i-frames are respected, and invincibility from The Chariot / Power Pill is no longer silently burned away — blood machines just run at vanilla speed during the buff (so no faster-than-vanilla free donations either).
+- No more sudden deaths: acceleration automatically stops when the next donation could kill you (a full heart from Womb onwards is accounted for) — The Lost donating with The Chariot, Keeper, and just-revived Lazarus are safe now.
 
 If you have found any other bugs, please let me know to fix them.
 
 - 所有设置现已进入 Mod Config Menu [url=https://steamcommunity.com/sharedfiles/filedetails/?id=2681875787]Mod Config Menu[/url]（和 [url=https://steamcommunity.com/sharedfiles/filedetails/?id=2916069863] GoodTrip[Fixed] [/url] 一样）：最大速度、加速快慢、每种机器的开关。
 - 可选清除三选一游戏和乞丐生成的苍蝇，加速喂机器时不再容易受伤（MCM: KillSpawnedFlies）。
 - 可选延缓机器/乞丐生成的即爆炸弹（MCM: DefuseSpawnedBombs）。
-- 不再有猝死：当下一口献血可能致死时会自动停止加速（子宫层起卖血机一次抽一整颗心，已考虑在内），复活无敌帧会被尊重，战车卡/力量药丸的无敌时间也不会再被偷偷烧掉——无敌期间扣血机器回到原版速度（所以也无法比原版更快地白嫖）。
+- 不再有猝死：当下一口献血可能致死时会自动停止加速（子宫层起卖血机一次抽一整颗心，已考虑在内）——Lost 用战车卡卖血、店长、刚复活的拉撒路现在都不会暴毙了。无敌时间仍随加速一起流动，不会因加速多赚。
 
 如果还有发现其他 BUG，欢迎告诉我来修复！
 
