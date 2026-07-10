@@ -1,2 +1,4 @@
-- Fair trip path finding rewritten as breadth-first shortest path (the old all-paths search was worst-case exponential on loopy floors), and it no longer crashes when MinimapAPI can't resolve a room
-- Added MinimapAPICompat master switch in MCM for all MinimapAPI integration, off by default; FairTripTime now requires it on
+- New: keyboard minimap scale, x0.5 to x2.5 (MCM: MinimapScale), plus an on-map zoom button cycling x1.0 -> x1.5 -> x2.0 (works while pinned, no MCM needed)
+- The minimap window now keeps a minimum 3x3 size with rooms centered, so the buttons always fit even when only one room is discovered
+- Fixed a latent wrap-around where clicking the map's edge pixels could select a room on the neighboring row
+- Mod Config Menu links now point to the original author's official continuation 'Mod Config Menu - Impure' (the old Pure item was banned off the workshop in March)

@@ -1361,25 +1361,9 @@ function _gt:step()
         else
             mgid = crd.SafeGridIndex
         end
-        local function same_room(a, b) --multi-cell rooms may be stored under different cell ids
-            if a == b then return true end
-            local ra, rb = grid_room[a], grid_room[b]
-            return ra ~= nil and rb ~= nil and ra.ListIndex == rb.ListIndex
-        end
         for i = 1, 9 do
             if Input.IsButtonTriggered(Keyboard.KEY_0 + i, player.ControllerIndex) then
-                if bookmarks[i] ~= -99 and same_room(bookmarks[i], mgid) then
-                    --same key on its own room again: remove just this bookmark
-                    player:AnimateSad()
-                    bookmarks[i] = -99
-                elseif bookmarks[i] == -99 then
-                    --a room holds at most one bookmark: setting a new key here
-                    --steals it from whichever key held this room before
-                    for j = 1, 9 do
-                        if bookmarks[j] ~= -99 and same_room(bookmarks[j], mgid) then
-                            bookmarks[j] = -99
-                        end
-                    end
+                if bookmarks[i] == -99 then
                     player:AnimateHappy()
                     bookmarks[i] = mgid
                 else

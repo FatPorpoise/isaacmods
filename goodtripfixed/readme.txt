@@ -135,3 +135,9 @@ C:\Users\YourName\My Games\Binding of Isaac Afterbirth+ \
 2026年7月9日
 ·公平计时（FairTripTime）的寻路算法重写为广度优先最短路（原实现枚举全部路径，最坏情况指数级，属防患加固），并修复了 MinimapAPI 查不到房间时可能的崩溃。
 ·新增MinimapAPI联动总开关（MCM: MinimapAPICompat），默认关闭；公平计时需要开启该选项才生效。
+
+2026年7月10日
+·新增小地图缩放：MCM 滑条（x0.5~x2.5）+ 地图上的缩放按钮（循环 x1.0/x1.5/x2.0，图钉锁定时也能点，无需 MCM）。
+·小地图窗口现在保持最小 3×3 并居中显示房间，开局只发现一间房时按钮也放得下。
+·修复了点击地图边缘像素可能选中相邻行房间的隐藏 bug。
+·描述中的 Mod Config Menu 链接更换为原作者官方续作 Impure（旧版 Pure 已被工坊下架）。
