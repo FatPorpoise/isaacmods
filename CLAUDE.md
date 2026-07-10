@@ -57,7 +57,9 @@ one command per line, copy-paste ready:
 
 ```
 luamod goodtripfixed
-restart 28
+restart 0
+debug 3
+debug 10
 stage 7
 giveitem c561
 lua print(Isaac.GetPlayer(0).TearRange)
@@ -67,6 +69,7 @@ lua print(Isaac.GetPlayer(0).TearRange)
   mod's Lua was just edited — it hot-reloads without a game restart.
 - `restart <PlayerType>` picks the character; `giveitem cNNN` gives items (`tNNN` for
   trinkets); `stage N[a-d]` jumps floors; `lua print(Isaac.GetXX())` reads game state back.
+- `debug <N>`:
 - **Never quote an ID from memory** — models hallucinate them. Grep the ground truth
   first: `rg "ALMOND_MILK" isaac-lua-api/vanilla/enums.lua` (CollectibleType, PlayerType,
   EntityType, TrinketType...). Mind naming quirks: Tech X is `COLLECTIBLE_TECH_X`, not
