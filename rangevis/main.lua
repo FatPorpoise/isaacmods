@@ -132,7 +132,9 @@ if ModConfigMenu and mod:getConfig() and mod:HasData() then
 end
 
 local kOldMode = not mod:getConfig().TractorBeamMode
-local kInfinityLength = kOldMode and mod:getConfig().InfAimLength or 800
+local function kInfinityLength() --read live so MCM changes apply without restart
+    return kOldMode and mod:getConfig().InfAimLength or 800
+end
 local kBeamTipLength = 4
 
 local AimMode = {
@@ -537,7 +539,7 @@ function mod:renderAimline(player, shotVel, aimMode, shootMode)
             end
         elseif aimMode == AimMode.AIM_BOMB then
             shotVel = shotVel + extraVel * 0.36
-            shotVel = shotVel:Normalized() * kInfinityLength
+            shotVel = shotVel:Normalized() * kInfinityLength()
             percent = 1
             if mod:getConfig().RangedBone or mod:getConfig().DrFetus then
                 mod:drawLine(player, origPos, origPos + shotVel, LineMode.LINE_BOMB, lineColorBomb, percent, false)
@@ -566,7 +568,7 @@ function mod:renderAimline(player, shotVel, aimMode, shootMode)
             end
         elseif aimMode == AimMode.AIM_LASER then
             shotVel = shotVel + extraVel * 0.5
-            shotVel = shotVel:Normalized() * kInfinityLength
+            shotVel = shotVel:Normalized() * kInfinityLength()
             if mod:getConfig().TechLaser then
                 mod:drawLine(player, origPos, origPos + shotVel, LineMode.LINE_LASER, lineColorLaser, percent, false)
             end
@@ -584,7 +586,7 @@ function mod:renderAimline(player, shotVel, aimMode, shootMode)
             elseif aimMode == AimMode.AIM_BRIMSTONE then
                 color = lineColorBrim
                 lineMode = LineMode.LINE_BRIMSTONE
-                shotVel = shotVel:Normalized() * kInfinityLength
+                shotVel = shotVel:Normalized() * kInfinityLength()
                 enable = mod:getConfig().Brimstone
                 spectral = true
             elseif aimMode == AimMode.AIM_TECHX then
@@ -592,7 +594,7 @@ function mod:renderAimline(player, shotVel, aimMode, shootMode)
                 lineMode = LineMode.LINE_LASER
                 enable = mod:getConfig().TechX
                 shotVel = shotVel + extraVel
-                shotVel = shotVel:Normalized() * kInfinityLength
+                shotVel = shotVel:Normalized() * kInfinityLength()
                 shotVel = shotVel + extraVel * 0.8
                 --the vector is already at aim-line length here; the old extra
                 --`* player.TearRange * 0.75` blew it up to ~40000 px, emitting
@@ -626,7 +628,7 @@ function mod:renderAimline(player, shotVel, aimMode, shootMode)
                 shotVel = shotVel * (player.TearRange * 0.252 + 42)
                 enable = mod:getConfig().Azazel
             else
-                shotVel = shotVel:Normalized() * kInfinityLength
+                shotVel = shotVel:Normalized() * kInfinityLength()
             end
             if (shootMode & ShootMode.SHOOT_CHOCOLATE) ~= 0 then
                 percent = math.min(mod.shootTime / (player.MaxFireDelay * 2.5), 1)
@@ -643,7 +645,7 @@ function mod:renderAimline(player, shotVel, aimMode, shootMode)
             end
         elseif aimMode == AimMode.AIM_TECHX then
             shotVel = shotVel + extraVel
-            shotVel = shotVel:Normalized() * kInfinityLength
+            shotVel = shotVel:Normalized() * kInfinityLength()
             percent = math.min(mod.shootTime / (player.MaxFireDelay * 3), 1)
             if mod:getConfig().TechX then
                 mod:drawLine(player, origPos, origPos + shotVel, LineMode.LINE_LASER, lineColorLaser, percent, false)
@@ -662,7 +664,7 @@ function mod:renderAimline(player, shotVel, aimMode, shootMode)
             end
         elseif aimMode == AimMode.AIM_LASER then
             shotVel = shotVel + extraVel * 0.5
-            shotVel = shotVel:Normalized() * kInfinityLength
+            shotVel = shotVel:Normalized() * kInfinityLength()
             percent = math.min(mod.shootTime / (player.MaxFireDelay * 3), 1)
             if mod:getConfig().TechLaser or (percent > 0 and mod:getConfig().ChocolateCharge) then
                 mod:drawLine(player, origPos, origPos + shotVel, LineMode.LINE_LASER, lineColorLaser, percent, false)
