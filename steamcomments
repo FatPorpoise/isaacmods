@@ -1,0 +1,69 @@
+#!/usr/bin/env -S uv run python
+# Fetch Steam Workshop comments for a mod — no login needed (public endpoint).
+#
+#   ./steamcomments goodtripfixed          # mod folder name (reads metadata.xml <id>)
+#   ./steamcomments 2916069863 50          # or raw workshop id, optional count (default 20)
+#
+# Prints newest-first: [YYYY-MM-DD HH:MM] Author: text
+import html
+import json
+import re
+import sys
+import urllib.parse
+import urllib.request
+from datetime import datetime
+from pathlib import Path
+
+WORKSPACE = Path(__file__).resolve().parent
+UA = {"User-Agent": "Mozilla/5.0"}
+
+
+def post(url: str, data: dict) -> dict:
+    req = urllib.request.Request(url, urllib.parse.urlencode(data).encode(), UA)
+    with urllib.request.urlopen(req, timeout=30) as r:
+        return json.load(r)
+
+
+def resolve_id(arg: str) -> str:
+    if arg.isdigit():
+        return arg
+    meta = WORKSPACE / arg / "metadata.xml"
+    m = re.search(r"<id>(\d+)</id>", meta.read_text(encoding="utf-8"))
+    if not m:
+        sys.exit(f"no <id> found in {meta}")
+    return m.group(1)
+
+
+def main() -> None:
+    if len(sys.argv) < 2:
+        sys.exit(__doc__ or "usage: steamcomments <modname|workshopid> [count]")
+    fileid = resolve_id(sys.argv[1])
+    count = int(sys.argv[2]) if len(sys.argv) > 2 else 20
+
+    details = post(
+        "https://api.steampowered.com/ISteamRemoteStorage/GetPublishedFileDetails/v1/",
+        {"itemcount": 1, "publishedfileids[0]": fileid},
+    )["response"]["publishedfiledetails"][0]
+    owner, title = details["creator"], details.get("title", "?")
+
+    thread = post(
+        f"https://steamcommunity.com/comment/PublishedFile_Public/render/{owner}/{fileid}/",
+        {"start": 0, "count": count, "format": "json"},
+    )
+    print(f"# {title} ({fileid}) — {thread['total_count']} comments, showing {count} newest\n")
+
+    blocks = re.split(r'class="commentthread_comment\b', thread["comments_html"])[1:]
+    for b in blocks:
+        ts = re.search(r'data-timestamp="(\d+)"', b)
+        author = re.search(r'<bdi>(.*?)</bdi>', b, re.S)
+        text = re.search(r'class="commentthread_comment_text"[^>]*>(.*?)</div>', b, re.S)
+        if not (ts and author and text):
+            continue
+        when = datetime.fromtimestamp(int(ts.group(1))).strftime("%Y-%m-%d %H:%M")
+        body = re.sub(r"<br\s*/?>", "\n    ", text.group(1))
+        body = html.unescape(re.sub(r"<[^>]+>", "", body)).strip()
+        print(f"[{when}] {html.unescape(author.group(1)).strip()}:\n    {body}\n")
+
+
+if __name__ == "__main__":
+    main()
