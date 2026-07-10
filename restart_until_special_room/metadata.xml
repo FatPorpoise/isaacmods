@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata>
+    <name>Restart Until Special Room</name>
+    <directory>restart_until_special_room</directory>
+    <id>2917382429</id>
+    <description>CTRL+R to keep restarting until treasure room is in the neighbor of starting room!
+By default it seeks for treasure room, planetarium, and library.
+You can change the list of special rooms to search in the menu.
+Sightly press R to open config menu, again to close. UP and DOWN to move selection, LEFT or RIGHT to toggle.
+With the menu, this mod may also be configured to seek for sacrifice room, cursed room, or shop too.
+Enable the 'SkipCurses' option in menu to skip seeds with curse in stage 1 (e.g. curse of the blind).
+The 'ItemQuality' option, which is a number, ensures the treasure room (or other special rooms) to spawn items with quality &gt;= that value.
+Enable 'EntireFloor' to search the room in entire floor, not necessary to be neighbor of starting room, useful for searching planetariums.
+Enable 'EdenStartItem' and set 'ItemQuality' to 4, to look for Eden seeds starting with quality 4 passive or active item.
+If 'FindTreasureRoom' and 'EdenStartItem' is both on, it will stop restarting until one of Eden start item or treasure room item is quality 4.
+Setting 'ItemId' option to look for a specific item. There is actually three options 'ItemIdHigh/Mid/Low' for digits of item ID you want to search.
+In Greed Mode, only the 'ItemQuality', 'ItemId', and 'EdenStartItem' options is available.
+Since you only want to visit the Shop in Greed Mode, pressing CTRL+R will restart and **directly teleport you into the shop** as a convinence. When 'ItemQuality' is specified (not zero), it will restart until the shop sell item(s) above that quality.
+
+Hints:
+CTRL+R only works in stage 1 to prevent accidental restarts.
+You only need to press CTRL+R once, no need keep holding it for long.
+When all special rooms are OFF in the menu, CTRL+R is simply a quick shortcut to holding R.
+CTRL+R won't consume Eden Tokens when playing as Eden, which is actually good.
+If you are annoyed waiting too long for special rooms, hold R to stop searching.
+For controller users, press left-stick and right-stick at the same time instead of CTRL+R to reroll seed, press right-stick instead of R to open menu.
+Difference with [url=https://steamcommunity.com/sharedfiles/filedetails/?id=2560433301]Treasure Room Start[/url]: This mod is not only able to find treasure room in neighbor, but also ensure item quality in that!
+Works in challanges (with treasure room) too.
+    
+
+Changelog:
+v1.11 - Fixed: holding R now reliably cancels the restart loop (release R once after CTRL+R, then hold R to stop).
+
+TODO list:
+Restart until stage 13 (Home) spawns Mom's Knife?
+Restart until Eden holds a specific passive / active item (DONE!)
+What's your idea? Let me know in the comments below!
+</description>
+    <version>1.11</version>
+    <visibility>Public</visibility>
+    <tag id="Items"/>
+    <tag id="Rooms"/>
+    <tag id="Floors"/>
+    <tag id="Tweaks"/>
+</metadata>
