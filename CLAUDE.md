@@ -33,10 +33,22 @@ mod's source. Open this directory as the editor root so the shared `.luarc.json`
 
 ## Testing Contract
 
-When providen with steam community comments on mods. Extract bug fix and feature requests.
-Extract into bulletpoints for user to review.
+When provided with Steam community comments on mods, extract bug reports and feature
+requests into bullet points for the user to review. Not every request deserves a fix:
+non-bugs get a "won't fix" (just explain why in a reply); niche requests go behind
+MCM-gated if-paths, default off — the majority keeps the familiar behavior while the
+minority still gets served.
 
-Do bug fixes one by one.
+Do bug fixes one by one, never several fixes in parallel. The workflow for each fix:
+
+1. Leave the mod unfixed. Write a reproduction guide based on the comment.
+2. The user reproduces the phenomenon successfully.
+3. Implement your fix.
+4. The user tries to reproduce again — confirm the bug is gone and nothing else broke.
+5. Append one changelog line describing the bug fixed or feature implemented.
+
+Fix not converging? Probe loop: form hypotheses, add instrument logs, debug together
+with the user.
 
 ## API references
 
@@ -55,4 +67,4 @@ Do bug fixes one by one.
 
 - `isaac-spinfix/` — patch for Rep+'s render thread pinning a CPU core under Wine.
 - `steamcomments` — fetch a mod's workshop comments from CLI (folder name or workshop id), no login needed.
-- `moduploader` — launch Isaac's native Linux ModUploader to publish a mod release to the workshop.
+- `moduploader` — launch Isaac's ModUploader to publish a mod release to the workshop (requires user GUI clicks).
