@@ -142,3 +142,8 @@ C:\Users\YourName\My Games\Binding of Isaac Afterbirth+ \
 ·修复了点击地图边缘像素可能选中相邻行房间的隐藏 bug。
 ·描述中的 Mod Config Menu 链接更换为原作者官方续作 Impure（旧版 Pure 已被工坊下架）。
 ·修复了原版遗留的邻接回绕 bug：地图最左缘的房间会把相邻行最右缘的房间误判为"已清邻居"而放行本不该允许的传送（公平计时的最后一跳判定同样受益）。
+
+2026年7月11日
+·公平旅行（FairTripTime）不再需要 MinimapAPI（感谢 Porp 的 PR）：寻路已自立门户，MinimapAPICompat 开关退役。公平计时默认关闭，想要请在 MCM 开启；此前已主动开过联动开关的玩家会保留原设置。
+·新增自定义开图键（MCM: OverlayKey / OverlayKeyController，感谢 Porp）：可把传送地图绑到别的键，避开 EID 的 TAB 物品提醒等按键冲突；不绑定则沿用原版地图键，绑定后替代原版地图键触发。
+·合并后修正：未绑定自定义键时正确回落到原版地图键；邻接建表补上列护栏；存档迁移保证老玩家不会突然吃上时间惩罚。

@@ -144,7 +144,7 @@ local gtconfig = {
     FasterCursorMove = false,  --move cursor faster in keyboard minimap by press arrow keys once instead of having to hold them
     DangerCautionCompat = true,  --weather to work with my other mod 'Dangerous room! Caution' by indicate dangerous room by colors
     -- MinimapAPICompat = false,  --master switch for MinimapAPI integration (FairTripTime needs this); off by default for low-end machines
-    FairTripTime = true,  --weather to incur fair time according to distance
+    FairTripTime = false,  --weather to incur fair time according to distance; off by default so the apiless rework doesn't spring time penalties on existing players
     ShowSpecialIcons = true,  --show icons on room that have mirror, white fireplace, minecart, mine button, or tinted skull
     -- ShowDoorsAllowed = false,  --show doors allowed for secret rooms
     -- DebugMod = false,  --testonly.
@@ -401,6 +401,17 @@ if ModConfigMenu then
             for k, v in pairs(cfg) do
                 gtconfig[k] = v
             end
+            --one-shot migration: FairTripTime used to be inert unless the (now
+            --retired) MinimapAPICompat switch was on, yet every old save stores
+            --FairTripTime=true (the old default). Now that fair trip works
+            --standalone, only users who had actually opted into the compat
+            --switch keep it enabled; everyone else starts off as before.
+            if not cfg.FairTripMigrated then
+                gtconfig.FairTripMigrated = true
+                if not cfg.MinimapAPICompat then
+                    gtconfig.FairTripTime = false
+                end
+            end
             mmp_ltpos = Vector(gtconfig.TopLeftX or 100, gtconfig.TopLeftY or 100)
             update_mmscale()
             -- mmp_pos0 = mmp_ltpos - mmp_ltpos_
@@ -424,8 +435,9 @@ function _gt.dump(o)
    if type(o) == 'table' then
       local s = '{ '
       for k,v in pairs(o) do
-         if type(k) ~= 'number' then k = '"'..k..'"' end
-         s = s .. '['..k..'] = ' .. _gt.dump(v) .. ','
+         local key = k
+         if type(key) ~= 'number' then key = '"'..key..'"' end
+         s = s .. '['..key..'] = ' .. _gt.dump(v) .. ','
       end
       return s .. '} '
    else
@@ -838,7 +850,11 @@ function _gt:get_room_neighbours()
         for gridIndex, cellRoom in pairs(grid_room) do
           if cellRoom.SafeGridIndex == safeIndex then
               for _, offset in ipairs(offsets) do
-                  local other = grid_room[gridIndex + offset]
+                  --column guard: +-1 from a row edge would wrap to the
+                  --neighboring row (same fix as in check_neigh_connected)
+                  local wrapped = (offset == -1 and gridIndex % 13 == 0)
+                               or (offset == 1 and gridIndex % 13 == 12)
+                  local other = not wrapped and grid_room[gridIndex + offset] or nil
 
                   if other and other.SafeGridIndex ~= safeIndex then
                       room.Neighbors[other.SafeGridIndex] = true
@@ -1361,34 +1377,22 @@ function _gt:mirror_mmp_dir(p)
     end
 end
 
+--nil bindings follow the vanilla map key; once a custom binding is set it
+--REPLACES the map key (that's the point for e.g. dodging EID's TAB overlay)
 function _gt:is_overlay_triggerd()
-    if ModConfigMenu then 
-      if (Input.IsButtonTriggered(gtconfig.OverlayKey,0) 
-      or Input.IsButtonTriggered(gtconfig.OverlayKeyController,player.ControllerIndex)) then
-        return true
-      else
-        return false
-      end
+    if gtconfig.OverlayKey or gtconfig.OverlayKeyController then
+      return (gtconfig.OverlayKey ~= nil and Input.IsButtonTriggered(gtconfig.OverlayKey, 0))
+          or (gtconfig.OverlayKeyController ~= nil and Input.IsButtonTriggered(gtconfig.OverlayKeyController, player.ControllerIndex))
     end
-    if Input.IsActionTriggered(ButtonAction.ACTION_MAP,player.ControllerIndex) then
-      return true
-    end
-    return false
+    return Input.IsActionTriggered(ButtonAction.ACTION_MAP, player.ControllerIndex)
 end
 
 function _gt:is_overlay_pressed()
-    if ModConfigMenu then 
-      if (Input.IsButtonPressed(gtconfig.OverlayKey,0) 
-      or Input.IsButtonPressed(gtconfig.OverlayKeyController,player.ControllerIndex)) then
-        return true
-      else
-        return false
-      end
+    if gtconfig.OverlayKey or gtconfig.OverlayKeyController then
+      return (gtconfig.OverlayKey ~= nil and Input.IsButtonPressed(gtconfig.OverlayKey, 0))
+          or (gtconfig.OverlayKeyController ~= nil and Input.IsButtonPressed(gtconfig.OverlayKeyController, player.ControllerIndex))
     end
-    if Input.IsActionPressed(ButtonAction.ACTION_MAP,player.ControllerIndex) then
-      return true
-    end
-    return false
+    return Input.IsActionPressed(ButtonAction.ACTION_MAP, player.ControllerIndex)
 end
 
 function _gt:mouse_action()
