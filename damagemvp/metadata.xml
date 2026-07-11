@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata>
+    <name>Damage MVP</name>
+    <directory>damagemvp</directory>
+    <description>Shows what dealt the damage: a breakdown of your damage to enemies by source (tears, Brimstone, knife, bombs, each familiar, burn/poison).
+
+Currently a probe build that only logs damage events to the console.</description>
+    <version>0.1</version>
+    <visibility>Private</visibility>
+    <tag id="Tweaks"/>
+</metadata>
