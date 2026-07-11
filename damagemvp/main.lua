@@ -144,13 +144,12 @@ function mod:onPostUpdate()
             stillWaiting[#stillWaiting + 1] = hit
         else
             local entity = hit.ptr.Ref
-            local realLoss
             if entity == nil or entity:IsDead() then
-                realLoss = hit.hitPointsBefore
-                print(hit.line .. string.format(" | real %.2f (killed)", realLoss))
+                -- overkill: HP lost is unknowable, the hit only had this much left to take
+                print(hit.line .. string.format(" | KILLED (had %.2f hp)", hit.hitPointsBefore))
             else
-                realLoss = hit.hitPointsBefore - entity.HitPoints
-                print(hit.line .. string.format(" | real %.2f (hp %.2f)", realLoss, entity.HitPoints))
+                local realLoss = hit.hitPointsBefore - entity.HitPoints
+                print(hit.line .. string.format(" | real %.2f (hp %.2f left)", realLoss, entity.HitPoints))
             end
         end
     end
