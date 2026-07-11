@@ -50,37 +50,6 @@ B)For controller or keyboard users, Press MapButton + ↑↓←→ to move the c
 ·If you like, you can change &quot;KeyboardMapEnable = true&quot; to &quot;false&quot; in gtconfig.lua to disable this minimap.(1.2.1 now drag it into the recycle bin just disable it fast)
 ·If your hudoffset in game is not 0, please change &quot;HudOffset = 0&quot; in gtconfig.lua to match your real hudoffset.
 ·Set &quot;TeleportAnimation = false&quot; in gtconfig.lua can remove the animation(White flash).(1.2.1:It is now disable by default)
----
-tips:
-·The location of gtconfig.lua:
-*REPENTANCE*
-// Windows
-...\steam\steamapps\common\Binding of Isaac Rebirth\mods\goodtrip_1630477831\
-'General modding changes:
-- Mods are now stored in a &quot;mods&quot; folder in the same directory as the rest of the game files
-- This directory can be easily accessed by right clicking The Binding of Isaac: Rebirth in the Steam library, then clicking on &quot;Properties&quot;, &quot;Local Files&quot;, and finally &quot;Browse...&quot;'
---
-·How to show the built-in cursor:
-C:\Users\YourName\My Games\Binding of Isaac Repentance\
-edit options.ini
-Change MouseControl=0 to MouseControl=1
-------------
-
-AB+:
-// Windows
-C:\Users\YourName\My Games\Binding of Isaac Afterbirth+ Mods\goodtrip_1630477831\
-// OSX
-~/Library/Application Support/Binding of Isaac Afterbirth+ Mods/goodtrip_1630477831/
-
-·How to show the built-in cursor:
-// Windows
-C:\Users\YourName\My Games\Binding of Isaac Afterbirth+ \
-// OSX
-~/Library/Application Support/Binding of Isaac Afterbirth+ /
-edit options.ini
-Change MouseControl=0 to MouseControl=1
-
-
 
 【操作方式】
 1.按住地图键(通常是TAB)的同时，鼠标点击右上角小地图的目标房间来进行传送。
