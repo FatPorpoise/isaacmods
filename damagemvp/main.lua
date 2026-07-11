@@ -97,7 +97,8 @@ end
 -- the player still has alive this frame
 local function laserLabel(player)
     for _, entity in ipairs(Isaac.FindByType(EntityType.ENTITY_LASER, -1, -1, false, false)) do
-        if ownerPlayerOf(entity) ~= nil then
+        local owner = ownerPlayerOf(entity)
+        if owner ~= nil and (player == nil or GetPtrHash(owner) == GetPtrHash(player)) then
             local label = LASER_LABELS[entity.Variant]
             if label ~= nil then
                 local familiar = familiarBehind(entity)
